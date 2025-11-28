@@ -16,6 +16,7 @@ The workflow in this project includes:
 
 The project is designed to be modular and reproducible, with a clear separation between data acquisition, feature engineering, and model training.
 
+<img width="1577" height="478" alt="image" src="https://github.com/user-attachments/assets/66976286-7f9b-4e7e-a407-059ea60782b5" />
 
 ## Data Sources
 
