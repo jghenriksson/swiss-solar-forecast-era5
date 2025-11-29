@@ -1,18 +1,18 @@
-# Solar PV Forecasting with ERA5
+# Swiss Solar Forecast (ERA5 & Deep Learning)
 
-This project implements an end-to-end pipeline for short-term solar photovoltaic (PV) power forecasting using ERA5 reanalysis weather data.  
-It combines physically inspired feature engineering with deep learning models to predict solar power generation from meteorological drivers.
+This project implements an end-to-end pipeline for forecasting hourly solar PV generation in Switzerland using ERA5 climate reanalysis data and deep learning models. It integrates multiple data sources, performs extensive feature engineering, and prepares spatiotemporal sequences for LSTM-based forecasting.
 
 ## Overview
 
-The workflow in this project includes:
+This project covers the full workflow of building a data-driven solar forecasting model:
 
-- Downloading and processing ERA5 reanalysis data from the Copernicus Climate Data Store
-- Population-weighted spatial aggregation of meteorological variables
-- Solar geometry feature engineering (solar zenith and sun vector components)
-- Heuristic snow cover modelling to capture seasonal panel obstruction effects
-- Preparation of spatiotemporal input sequences
-- Deep learning–based forecasting using LSTM architectures
+- Downloading and processing ERA5 atmospheric variables (temperature, radiation, wind, cloud cover, etc.)
+- Population-weighted spatial aggregation using WorldPop data  
+- Solar geometry feature engineering (cosine of solar zenith angle, sun vector components)
+- Heuristic snow cover modelling to represent PV system obstructions in winter
+- PV generation modelling using ENTSO-E historical data
+- Capacity-normalisation using Ember Climate solar capacity statistics
+- Spatiotemporal sequence preparation for deep learning models (LSTM)
 
 The project is designed to be modular and reproducible, with a clear separation between data acquisition, feature engineering, and model training.
 
@@ -26,13 +26,13 @@ This project integrates multiple public data sources:
   Used for hourly meteorological variables such as temperature, cloud cover, wind, radiation, humidity, precipitation, and boundary layer properties.
 
 - **ENTSO-E Transparency Platform**  
-  Used for historical national and regional solar PV generation time series.
+  Used for historical national solar PV generation time series.
 
 - **WorldPop (worldpop.org)**  
   Used for population density data, enabling population-weighted spatial aggregation of meteorological features.
 
 - **Ember Climate**  
-  Used for national-level historical and projected solar capacity data, enabling capacity-normalised feature engineering.
+  Used for national-level historical solar capacity data, enabling capacity-normalised feature engineering.
 
 All datasets are processed and aligned to a common hourly UTC timeline.
 
@@ -40,29 +40,31 @@ All datasets are processed and aligned to a common hourly UTC timeline.
 
 Key engineered features used in the model include:
 
-- Population-weighted meteorological variables
-- Solar zenith and sun position vectors  
-- Clear-sky radiation approximations
-- Snow cover state modelling
-- Wind speed and direction components
-- Boundary layer and cloud structure variables
+- **Population-weighted ERA5 variables** (temperature, cloud cover, wind, radiation, humidity, precipitation, boundary layer height…)
+- **Solar geometry**  
+  - cosine of solar zenith angle (`cos_sza` / `mu0`)  
+  - sun vector components (`sun_x`, `sun_y`, `sun_z`)
+- **Clear-sky irradiance** using a fast Haurwitz model
+- **Clear-sky index (`kstar`)**  
+- **Heuristic snow state model** representing accumulated snowfall, melting, and wind shedding
+- **Wind direction decomposition** into `wind_dir_x` and `wind_dir_y`
+- **Capacity scaling** using monthly solar capacity factors from Ember
 
 - ## Installation
 
 Clone the repository and install dependencies:
-
+```bash
 git clone https://github.com/jghenriksson/solar-pv-forecasting-era5.git
 cd solar-pv-forecasting-era5
 pip install -r requirements.txt
-
+```
 
 ## Notes
 
-ERA5 data must be downloaded via the CDS API. You will need a CDS account and API key.
-
-The project assumes data is processed in UTC time.
-
-Large NetCDF/GRIB files are not stored in the repository and must be downloaded locally.
+- ERA5 data must be downloaded via the CDS API. You will need a CDS account and API key.
+- Large NetCDF files are not included in this repository. They must be downloaded locally.
+- The project assumes data is processed in UTC time.
+- TensorFlow 2.20.0 was used for model development.
 
 ## Future Work
 
@@ -71,3 +73,4 @@ Potential extensions of this project include:
 - Transformer-based temporal models
 - Probabilistic forecasting with uncertainty estimation
 - Intraday satellite-based cloud nowcasting integration
+- Spatial CNN encoder for full-gridded ERA5 fields
